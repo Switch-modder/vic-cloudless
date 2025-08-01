@@ -49,12 +49,12 @@ function prepareVOSKbuild_ARMARM64() {
         git clone --single-branch https://github.com/alphacep/openfst openfst
         cd openfst
         autoreconf -i
-        CFLAGS="-g -O3" ./configure --prefix=${KALDIROOT}/tools/openfst --enable-static --enable-shared --enable-far --enable-ngram-fsts --enable-lookahead-fsts --with-pic --disable-bin --host=${CROSS_TRIPLE} --build=x86-linux-gnu
+        CFLAGS="-g -O3 -fno-math-errno -funsafe-math-optimizations" CXXFLAFS="-g -O3 -fno-math-errno -funsafe-math-optimizations" ./configure --prefix=${KALDIROOT}/tools/openfst --enable-static --enable-shared --enable-far --enable-ngram-fsts --enable-lookahead-fsts --with-pic --disable-bin --host=${CROSS_TRIPLE} --build=x86-linux-gnu
         make -j 12 && make install
         cd ${KALDIROOT}/src
         sed -i "s:TARGET_ARCH=\"\`uname -m\`\":TARGET_ARCH=$(echo $CROSS_TRIPLE|cut -d - -f 1):g" configure
-        sed -i "s: -O1 : -O3 :g" makefiles/linux_openblas_arm.mk
-        ./configure --mathlib=OPENBLAS_CLAPACK --shared --use-cuda=no
+        sed -i "s: -O1 : -O3 -fno-math-errno -funsafe-math-optimizations :g" makefiles/linux_openblas_arm.mk
+        CFLAGS="-O3 -fno-math-errno -funsafe-math-optimizations" CXXFLAGS="-O3 -fno-math-errno -funsafe-math-optimizations" ./configure --mathlib=OPENBLAS_CLAPACK --shared --use-cuda=no
         make -j 12 online2 lm rnnlm
         find ${KALDIROOT} -name "*.o" -exec rm {} \;
         touch ${KALDIROOT}/KALDIBUILT
@@ -99,7 +99,7 @@ function doVOSKbuild() {
             cd ..
         fi
         cd vosk-api/src
-        KALDI_ROOT=$KALDIROOT make EXTRA_LDFLAGS=" -lpthread -Wl,-Bstatic -lc++ -Wl,-Bdynamic -lpthread -ldl -lm" -j8
+        KALDI_ROOT=$KALDIROOT make EXTRA_CFLAGS=" -O3 -fno-math-errno -funsafe-math-optimizations" EXTRA_CXXFLAGS=" -O3 -fno-signed-zeros -fno-trapping-math -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -fno-honor-infinities -fno-honor-nans" EXTRA_LDFLAGS=" -lpthread -Wl,-Bstatic -lc++ -Wl,-Bdynamic -lpthread -ldl -lm" -j8
 	cd "${ORIGPATH}/build/${ARCH}"
         mkdir -p "${BPREFIX}/lib"
         mkdir -p "${BPREFIX}/include"

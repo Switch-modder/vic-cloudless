@@ -8,17 +8,15 @@ import (
 	"sync"
 
 	"github.com/digital-dream-labs/vector-cloud/internal/clad/cloud"
+	"github.com/digital-dream-labs/vector-cloud/internal/config"
 	"github.com/digital-dream-labs/vector-cloud/internal/voice/vtr"
 
-	"github.com/digital-dream-labs/vector-cloud/internal/config"
 	"github.com/digital-dream-labs/vector-cloud/internal/log"
 	"github.com/digital-dream-labs/vector-cloud/internal/token"
-	"github.com/digital-dream-labs/vector-cloud/internal/util"
 
 	pb "github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/gwatts/rootcerts"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 var Added bool
@@ -42,38 +40,22 @@ func getCertPool() *x509.CertPool {
 
 func newConn(ctx context.Context, opts *options) (*conn, error) {
 
-	dialOpts := []grpc.DialOption{
-		grpc.WithTransportCredentials(
-			credentials.NewClientTLSFromCert(getCertPool(), ""),
-		),
-	}
-
-	dialOpts = append(dialOpts, util.CommonGRPC()...)
-	// end idea
-
-	if opts.tokener != nil {
-		creds, err := opts.tokener.Credentials()
-		if err != nil {
-			return nil, err
-		}
-		dialOpts = append(dialOpts, grpc.WithPerRPCCredentials(creds))
-	}
-	rpcConn, err := grpc.DialContext(ctx, config.Env.JDocs, dialOpts...)
-	if err != nil {
-		return nil, err
-	}
+	// WHO needs error handling anyway
+	rpcConn, _ := grpc.DialContext(ctx, config.Env.JDocs)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	rpcClient := pb.NewJdocsClient(rpcConn)
 
 	ret := &conn{
-		conn:   rpcConn,
 		client: rpcClient,
 		tok:    opts.tokener}
 	return ret, nil
 }
 
 func (c *conn) close() error {
-	return c.conn.Close()
+	return nil
 }
 
 func (c *conn) handleRequest(ctx context.Context, req *cloud.DocRequest) (*cloud.DocResponse, error) {
@@ -100,20 +82,29 @@ func (c *conn) writeRequest(ctx context.Context, cladReq *cloud.WriteRequest) (*
 		log.Println("getting location because of RobotSettings jdocs update")
 		go vtr.FetchWeatherNow(true)
 	}
-	resp, err := c.client.WriteDoc(ctx, req)
-	if err != nil {
-		return connectErrorResponse, err
-	}
-	return cloud.NewDocResponseWithWrite((*protoWriteResp)(resp).toClad()), nil
+	// resp, err := c.client.WriteDoc(ctx, req)
+	// if err != nil {
+	// 	return connectErrorResponse, err
+	// }
+	return cloud.NewDocResponseWithWrite(&cloud.WriteResponse{
+		Status: cloud.WriteStatus_Accepted,
+	}), nil
 }
 
 func (c *conn) readRequest(ctx context.Context, cladReq *cloud.ReadRequest) (*cloud.DocResponse, error) {
 	req := (*cladReadReq)(cladReq).toProto()
-	resp, err := c.client.ReadDocs(ctx, req)
-	if err != nil {
-		return connectErrorResponse, err
+	// resp, err := c.client.ReadDocs(ctx, req)
+	// if err != nil {
+	// 	return connectErrorResponse, err
+	// }
+	var resp cloud.ReadResponse
+	for range req.Items {
+		resp.Items = append(resp.Items, cloud.ResponseDoc{
+			Status: cloud.ReadStatus_NotFound,
+		})
 	}
-	return cloud.NewDocResponseWithRead((*protoReadResp)(resp).toClad()), nil
+
+	return cloud.NewDocResponseWithRead(&resp), nil
 }
 
 func (c *conn) deleteRequest(ctx context.Context, cladReq *cloud.DeleteRequest) (*cloud.DocResponse, error) {

@@ -12,6 +12,7 @@
 #define __util_logging_DAS_h
 
 #include <string>
+#include <cstdint>
 
 //
 // This file must be #included by each CPP file that uses DASMSG macros, to

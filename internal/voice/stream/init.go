@@ -47,9 +47,9 @@ func (strm *Streamer) init(streamSize int) {
 		var underClockAfter bool
 		o, err := strconv.Atoi(curFreq)
 		if err == nil {
-			if o < 800000 {
+			if o < 729600 {
 				underClockAfter = true
-				vtr.SetFreq("800000", "600000")
+				go vtr.SetFreq("729600", "600000")
 			}
 		}
 		for data := range strm.audioStream {
@@ -65,7 +65,7 @@ func (strm *Streamer) init(streamSize int) {
 					},
 				}, strm.receiver)
 				if underClockAfter {
-					vtr.SetFreq(curFreq, "600000")
+					vtr.SetFreq(curFreq, "400000")
 				}
 				return
 			}

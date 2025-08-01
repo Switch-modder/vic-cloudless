@@ -11,12 +11,15 @@ ConditionFileIsExecutable=/anki/bin/vic-cloud
 
 [Service]
 EnvironmentFile=/anki/etc/vic-cloud.env
+ExecStartPre=/usr/bin/mkdir -p /run/vic-cloud
 ExecStart=/usr/bin/logwrapper /anki/bin/vic-cloud $VIC_CLOUD_OPTS
 ExecStopPost=/anki/bin/vic-on-exit
 Restart=no
 User=cloud
 Group=anki
 UMask=0002
+# maximum priority
+Nice=-20
 
 # VIC-1951
 # /factory/cloud has mode 440, which prevents us from reading it as the net user.

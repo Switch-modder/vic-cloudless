@@ -31,6 +31,7 @@ require (
 	github.com/aalpern/go-metrics v0.0.0-20181116155206-644932c99203 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
+	github.com/beevik/ntp v1.4.3 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/digital-dream-labs/opus-go v0.0.0-20201230195736-934a8a9e0a1e // indirect

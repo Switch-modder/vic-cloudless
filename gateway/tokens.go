@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"os"
 	"time"
 
@@ -52,7 +54,25 @@ type ClientTokenManager struct {
 	limiter           *MultiLimiter      `json:"-"`
 }
 
+func randomString() string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 20)
+	for i := range b {
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		b[i] = charset[n.Int64()]
+	}
+	return string(b)
+}
+
 func (ctm *ClientTokenManager) Init() error {
+	f, err := os.ReadFile("/run/vic-cloud/perRuntimeToken")
+	if err != nil {
+		token.PerRuntimeToken = randomString()
+		err = os.WriteFile("/run/vic-cloud/perRuntimeToken", []byte(token.PerRuntimeToken), 0777)
+		fmt.Println("HEY WIRE LOOK AT ME!!!:", err)
+	} else {
+		token.PerRuntimeToken = string(f)
+	}
 	ctm.forceClearFile = false
 	ctm.lastUpdatedTokens = time.Now().Add(-24 * time.Hour) // older than our startup time
 	// Limit the updates of the AppTokens with the following logic:
@@ -77,7 +97,7 @@ func (ctm *ClientTokenManager) Init() error {
 	ctm.notifyValid = make(chan struct{})
 	ctm.updateNowChan = make(chan chan struct{})
 	ctm.jdocIPC.Connect(ipc.GetSocketPath(jdocDomainSocket), jdocSocketSuffix)
-	err := ctm.readTokensFile()
+	err = ctm.readTokensFile()
 	if err != nil {
 		return ctm.UpdateTokens()
 	}
@@ -131,11 +151,18 @@ func (ctm *ClientTokenManager) DecodeTokenJdoc(jdoc []byte) error {
 	err := json.Unmarshal(jdoc, ctm)
 	if err != nil {
 		log.Printf("Unmarshal tokens failed. Invalidating. %s\n", err.Error())
-		ctm.ClientTokens = []ClientToken{}
+		ctm.ClientTokens = []ClientToken{
+			{
+				Hash:       "something",
+				ClientName: "something",
+				AppId:      "something",
+				IssuedAt:   "20250101",
+			},
+		}
 	} else {
 		log.Println("Updated valid tokens")
 	}
-	return err
+	return nil
 }
 
 // UpdateTokens polls the server for new tokens, and will update as necessary

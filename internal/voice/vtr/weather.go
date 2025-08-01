@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/beevik/ntp"
 	"github.com/digital-dream-labs/vector-cloud/internal/log"
 )
 
@@ -35,6 +36,7 @@ var currentTemp string = "120"
 var currentCondition WeatherCondition = Snow
 var currentLocation string = "San Francisco, California"
 var currentUnits string = "F"
+var currentWeatherTime time.Time
 var weatherMutex sync.Mutex
 var resetTicker chan bool
 
@@ -46,10 +48,50 @@ const (
 	Rain          WeatherCondition = "Rain"
 	Thunderstorms WeatherCondition = "Thunderstorms"
 	Sunny         WeatherCondition = "Sunny"
-	Clear         WeatherCondition = "Clear"
+	Clear         WeatherCondition = "Stars"
 	Snow          WeatherCondition = "Snow"
 	Cold          WeatherCondition = "Cold"
 )
+
+func waitForInternetAndAccurateClock() {
+	for {
+		if !hasInternet() {
+			fmt.Println("no internet")
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		ntpTime, err := ntp.Time("time.google.com")
+		if err != nil {
+			fmt.Println("can't get NTP time :(", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		// compare to system time
+		systemTime := time.Now().UTC()
+		diff := systemTime.Sub(ntpTime)
+		if diff < -24*time.Hour || diff > 24*time.Hour {
+			fmt.Println("system time is off...")
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		fmt.Println("INTERNET UP")
+		break
+	}
+}
+
+func hasInternet() bool {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Get("https://www.google.com/generate_204")
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode == 204
+}
 
 func locationFromDisk() (location, units string) {
 	botJdoc, jdocExists := GetJdoc()
@@ -66,6 +108,7 @@ func locationFromDisk() (location, units string) {
 }
 
 func FetchWeatherNow(external bool) {
+	waitForInternetAndAccurateClock()
 	if external {
 		// makes it so if resetTicker isn't being received, this goes anyway
 		select {
@@ -76,7 +119,7 @@ func FetchWeatherNow(external bool) {
 	weatherMutex.Lock()
 	location, units := locationFromDisk()
 	log.Println("Location from disk: ", location)
-	tempC, tempF, weather, err := getWeather(location)
+	tempC, tempF, weather, time, err := getWeather(location)
 	if err != nil {
 		currentTemp = "120"
 		currentCondition = "Snow"
@@ -89,6 +132,7 @@ func FetchWeatherNow(external bool) {
 		currentTemp = tempC
 	}
 	currentCondition = weather
+	currentWeatherTime = time
 	weatherMutex.Unlock()
 }
 
@@ -105,7 +149,7 @@ func WeatherFetcher() {
 	}
 }
 
-func getWeather(location string) (tempC, tempF string, weather WeatherCondition, err error) {
+func getWeather(location string) (tempC, tempF string, weather WeatherCondition, theTime time.Time, err error) {
 	geoURL := "https://nominatim.openstreetmap.org/search?" + url.Values{
 		"format": {"json"},
 		"q":      {location},
@@ -113,16 +157,16 @@ func getWeather(location string) (tempC, tempF string, weather WeatherCondition,
 	req1, _ := http.NewRequest("GET", geoURL, nil)
 	res1, err := http.DefaultClient.Do(req1)
 	if err != nil {
-		return "", "", Cold, err
+		return "", "", Cold, time.Time{}, err
 	}
 	defer res1.Body.Close()
 
 	var geo []struct{ Lat, Lon string }
 	if err = json.NewDecoder(res1.Body).Decode(&geo); err != nil {
-		return "", "", Cold, err
+		return "", "", Cold, time.Time{}, err
 	}
 	if len(geo) == 0 {
-		return "", "", Cold, fmt.Errorf("no geocode for %q", location)
+		return "", "", Cold, time.Time{}, fmt.Errorf("no geocode for %q", location)
 	}
 	lat, lon := geo[0].Lat, geo[0].Lon
 	oURL := "https://api.open-meteo.com/v1/forecast?" + url.Values{
@@ -134,7 +178,7 @@ func getWeather(location string) (tempC, tempF string, weather WeatherCondition,
 	}.Encode()
 	oRes, err := http.Get(oURL)
 	if err != nil {
-		return "", "", Cold, err
+		return "", "", Cold, time.Time{}, err
 	}
 	defer oRes.Body.Close()
 
@@ -151,7 +195,7 @@ func getWeather(location string) (tempC, tempF string, weather WeatherCondition,
 		} `json:"daily"`
 	}
 	if err = json.NewDecoder(oRes.Body).Decode(&om); err != nil {
-		return "", "", Cold, err
+		return "", "", Cold, time.Time{}, err
 	}
 
 	c := om.CurrentWeather.Temperature
@@ -163,27 +207,47 @@ func getWeather(location string) (tempC, tempF string, weather WeatherCondition,
 	layout := "2006-01-02T15:04"
 	ct, err := time.ParseInLocation(layout, om.CurrentWeather.Time, loc)
 	if err != nil {
-		return tempC, tempF, Cold, fmt.Errorf("time parse current: %w", err)
-	}
-	sunrise, err := time.ParseInLocation(layout, om.Daily.Sunrise[0], loc)
-	if err != nil {
-		return tempC, tempF, Cold, fmt.Errorf("time parse sunrise: %w", err)
-	}
-	sunset, err := time.ParseInLocation(layout, om.Daily.Sunset[0], loc)
-	if err != nil {
-		return tempC, tempF, Cold, fmt.Errorf("time parse sunset: %w", err)
+		return tempC, tempF, Cold, time.Time{}, fmt.Errorf("time parse current: %w", err)
 	}
 
+	type sunpair struct {
+		sunrise time.Time
+		sunset  time.Time
+	}
+	var sunpairs []sunpair
+	for i := 0; i < len(om.Daily.Sunrise) && i < len(om.Daily.Sunset); i++ {
+		sr, err1 := time.ParseInLocation(layout, om.Daily.Sunrise[i], loc)
+		ss, err2 := time.ParseInLocation(layout, om.Daily.Sunset[i], loc)
+		if err1 == nil && err2 == nil {
+			sunpairs = append(sunpairs, sunpair{sr, ss})
+		}
+	}
+
+	isDay := false
+	for i, sp := range sunpairs {
+		if ct.After(sp.sunrise) && ct.Before(sp.sunset) {
+			isDay = true
+			break
+		}
+		if i < len(sunpairs)-1 {
+			nextSunrise := sunpairs[i+1].sunrise
+			if ct.After(sp.sunset) && ct.Before(nextSunrise) {
+				isDay = false
+				break
+			}
+		}
+	}
+	if !isDay && ct.Before(sunpairs[0].sunrise) {
+		isDay = false
+	}
 	code := om.CurrentWeather.WeatherCode
 	switch {
 	case code >= 95 && code <= 99:
 		weather = Thunderstorms
 	case code == 71 || code == 73 || code == 75 || code == 77 || code == 85 || code == 86:
 		weather = Snow
-	case code == 1 || code == 2:
-		weather = Sunny
-	case code == 0:
-		if ct.After(sunrise) && ct.Before(sunset) {
+	case code == 1 || code == 2 || code == 0:
+		if isDay {
 			weather = Sunny
 		} else {
 			weather = Clear
@@ -198,6 +262,7 @@ func getWeather(location string) (tempC, tempF string, weather WeatherCondition,
 	if c <= 0 {
 		weather = Cold
 	}
+	fmt.Println("weather:", weather)
 
-	return tempC, tempF, weather, nil
+	return tempC, tempF, weather, ct, nil
 }
