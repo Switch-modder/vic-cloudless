@@ -7,6 +7,9 @@ import (
 	"github.com/digital-dream-labs/vector-cloud/internal/voice/vtr"
 )
 
+// it works well at 533MHz, but transcription is instant at 730
+var doFreqStuff bool = true
+
 // WIRE: main entrypoint for a request!
 // we are keeping the OG code commented in case we want to make some sort of hybrid solution
 
@@ -43,13 +46,16 @@ func (strm *Streamer) init(streamSize int) {
 	// }()
 
 	go func() {
-		curFreq := vtr.GetFreq()
+		var curFreq string
 		var underClockAfter bool
-		o, err := strconv.Atoi(curFreq)
-		if err == nil {
-			if o < 729600 {
-				underClockAfter = true
-				go vtr.SetFreq("729600", "600000")
+		if doFreqStuff {
+			curFreq = vtr.GetFreq()
+			o, err := strconv.Atoi(curFreq)
+			if err == nil {
+				if o < 729600 {
+					underClockAfter = true
+					go vtr.SetFreq("729600", "600000")
+				}
 			}
 		}
 		for data := range strm.audioStream {
@@ -64,8 +70,10 @@ func (strm *Streamer) init(streamSize int) {
 						Parameters: iParam,
 					},
 				}, strm.receiver)
-				if underClockAfter {
-					vtr.SetFreq(curFreq, "400000")
+				if doFreqStuff {
+					if underClockAfter {
+						vtr.SetFreq(curFreq, "400000")
+					}
 				}
 				return
 			}

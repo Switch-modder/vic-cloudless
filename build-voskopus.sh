@@ -6,7 +6,7 @@ cd voskopus
 ORIGPATH="$(pwd)"
 
 #ARMT="$(pwd)/vic-toolchain/arm-linux-gnueabi/bin/arm-linux-gnueabi-"
-ARMT="$HOME/.anki/vicos-sdk/dist/5.2.1-r06/prebuilt/bin/arm-oe-linux-gnueabi-"
+ARMT="$HOME/.anki/vicos-sdk/dist/5.3.0-r07/prebuilt/bin/arm-oe-linux-gnueabi-"
 
 #if [[ ! -f vic-toolchain ]]; then
 #    git clone https://github.com/kercre123/vic-toolchain --depth=1
@@ -99,7 +99,7 @@ function doVOSKbuild() {
             cd ..
         fi
         cd vosk-api/src
-        KALDI_ROOT=$KALDIROOT make EXTRA_CFLAGS=" -O3 -fno-math-errno -funsafe-math-optimizations" EXTRA_CXXFLAGS=" -O3 -fno-signed-zeros -fno-trapping-math -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -fno-honor-infinities -fno-honor-nans" EXTRA_LDFLAGS=" -lpthread -Wl,-Bstatic -lc++ -Wl,-Bdynamic -lpthread -ldl -lm" -j8
+        KALDI_ROOT=$KALDIROOT make EXTRA_CFLAGS=" -O3 -fno-math-errno -funsafe-math-optimizations" EXTRA_CXXFLAGS=" -O3 -fno-signed-zeros -fno-trapping-math -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -fno-honor-infinities -fno-honor-nans" EXTRA_LDFLAGS=" -lpthread -lc++ -lpthread -ldl -lm" -j8
 	cd "${ORIGPATH}/build/${ARCH}"
         mkdir -p "${BPREFIX}/lib"
         mkdir -p "${BPREFIX}/include"
