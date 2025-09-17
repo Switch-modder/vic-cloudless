@@ -32,8 +32,8 @@ go_deps:
 
 vic-cloud: voskopusbuild go_deps
 	CGO_ENABLED=1 GOARM=7 GOARCH=arm \
-	CC=${HOME}/.anki/vicos-sdk/dist/5.3.0-r07/prebuilt/bin/arm-oe-linux-gnueabi-clang \
-	CXX=${HOME}/.anki/vicos-sdk/dist/5.3.0-r07/prebuilt/bin/arm-oe-linux-gnueabi-clang++ \
+	CC=$(PWD)/vicos-sdk/dist/5.3.0-r07/prebuilt/bin/arm-oe-linux-gnueabi-clang \
+	CXX=$(PWD)/vicos-sdk/dist/5.3.0-r07/prebuilt/bin/arm-oe-linux-gnueabi-clang++ \
 	PKG_CONFIG_PATH="$(PWD)/voskopus/built/armel/lib/pkgconfig" \
 	CGO_CFLAGS="-Wno-implicit-function-declaration -I$(PWD)/voskopus/built/armel/include -I$(PWD)/voskopus/built/armel/include/opus" \
 	CGO_CXXFLAGS="-stdlib=libc++ -std=c++11" \
