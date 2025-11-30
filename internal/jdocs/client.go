@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
@@ -20,6 +21,9 @@ import (
 )
 
 var Added bool
+
+// Cloudless check file
+var forceCloudlessFilename = "/data/data/forceCloudless"
 
 type conn struct {
 	conn   *grpc.ClientConn
@@ -39,22 +43,34 @@ func getCertPool() *x509.CertPool {
 }
 
 func newConn(ctx context.Context, opts *options) (*conn, error) {
+	if _, err := os.Open(forceCloudlessFilename); err == nil {
 
-	// WHO needs error handling anyway
-	rpcConn, _ := grpc.DialContext(ctx, config.Env.JDocs)
-	// if err != nil {
-	// 	return nil, err
-	// }
+		return &conn{
+			conn:   nil,
+			client: nil,
+			tok:    opts.tokener,
+		}, nil
+	}
+
+	rpcConn, err := grpc.DialContext(ctx, config.Env.JDocs)
+	if err != nil {
+		return nil, err
+	}
 
 	rpcClient := pb.NewJdocsClient(rpcConn)
 
 	ret := &conn{
+		conn:   rpcConn,
 		client: rpcClient,
-		tok:    opts.tokener}
+		tok:    opts.tokener,
+	}
 	return ret, nil
 }
 
 func (c *conn) close() error {
+	if c.conn != nil {
+		return c.conn.Close()
+	}
 	return nil
 }
 
@@ -78,42 +94,64 @@ var connectErrorResponse = cloud.NewDocResponseWithErr(&cloud.ErrorResponse{Err:
 
 func (c *conn) writeRequest(ctx context.Context, cladReq *cloud.WriteRequest) (*cloud.DocResponse, error) {
 	req := (*cladWriteReq)(cladReq).toProto()
-	if strings.Contains(req.DocName, "RobotSettings") {
-		log.Println("getting location because of RobotSettings jdocs update")
-		go vtr.FetchWeatherNow(true)
+
+	if _, fileErr := os.Open(forceCloudlessFilename); fileErr != nil {
+		if c.conn == nil || c.client == nil {
+			return connectErrorResponse, fmt.Errorf("connection not established")
+		}
+		resp, err := c.client.WriteDoc(ctx, req)
+		if err != nil {
+			return connectErrorResponse, err
+		}
+		return cloud.NewDocResponseWithWrite((*protoWriteResp)(resp).toClad()), nil
+	} else {
+		if strings.Contains(req.DocName, "RobotSettings") {
+			log.Println("getting location because of RobotSettings jdocs update")
+			go vtr.FetchWeatherNow(true)
+		}
+		return cloud.NewDocResponseWithWrite(&cloud.WriteResponse{
+			Status: cloud.WriteStatus_Accepted,
+		}), nil
 	}
-	// resp, err := c.client.WriteDoc(ctx, req)
-	// if err != nil {
-	// 	return connectErrorResponse, err
-	// }
-	return cloud.NewDocResponseWithWrite(&cloud.WriteResponse{
-		Status: cloud.WriteStatus_Accepted,
-	}), nil
 }
 
 func (c *conn) readRequest(ctx context.Context, cladReq *cloud.ReadRequest) (*cloud.DocResponse, error) {
 	req := (*cladReadReq)(cladReq).toProto()
-	// resp, err := c.client.ReadDocs(ctx, req)
-	// if err != nil {
-	// 	return connectErrorResponse, err
-	// }
-	var resp cloud.ReadResponse
-	for range req.Items {
-		resp.Items = append(resp.Items, cloud.ResponseDoc{
-			Status: cloud.ReadStatus_NotFound,
-		})
-	}
 
-	return cloud.NewDocResponseWithRead(&resp), nil
+	if _, err := os.Open(forceCloudlessFilename); err != nil {
+		if c.conn == nil {
+			return connectErrorResponse, fmt.Errorf("connection not established")
+		}
+		resp, err := c.client.ReadDocs(ctx, req)
+		if err != nil {
+			return connectErrorResponse, err
+		}
+		return cloud.NewDocResponseWithRead((*protoReadResp)(resp).toClad()), nil
+	} else {
+		var resp cloud.ReadResponse
+		for range req.Items {
+			resp.Items = append(resp.Items, cloud.ResponseDoc{
+				Status: cloud.ReadStatus_NotFound,
+			})
+		}
+		return cloud.NewDocResponseWithRead(&resp), nil
+	}
 }
 
 func (c *conn) deleteRequest(ctx context.Context, cladReq *cloud.DeleteRequest) (*cloud.DocResponse, error) {
-	req := (*cladDeleteReq)(cladReq).toProto()
-	_, err := c.client.DeleteDoc(ctx, req)
-	if err != nil {
-		return connectErrorResponse, err
+	if _, fileErr := os.Open(forceCloudlessFilename); fileErr != nil {
+		if c.conn == nil || c.client == nil {
+			return connectErrorResponse, fmt.Errorf("connection not established")
+		}
+		req := (*cladDeleteReq)(cladReq).toProto()
+		_, err := c.client.DeleteDoc(ctx, req)
+		if err != nil {
+			return connectErrorResponse, err
+		}
+		return cloud.NewDocResponseWithDeleteResp(&cloud.Void{}), nil
+	} else {
+		return cloud.NewDocResponseWithDeleteResp(&cloud.Void{}), nil
 	}
-	return cloud.NewDocResponseWithDeleteResp(&cloud.Void{}), nil
 }
 
 func (c *client) handleConnectionless(req *cloud.DocRequest) (bool, *cloud.DocResponse, error) {

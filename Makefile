@@ -47,7 +47,7 @@ vic-cloud: gettoolchain voskopusbuild go_deps
 	-o build/vic-cloud \
 	cloud/*
 
-	#upx build/vic-cloud
+#	upx build/vic-cloud
 
 
 #vic-gateway: go_deps

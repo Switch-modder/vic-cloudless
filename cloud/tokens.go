@@ -21,6 +21,9 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
+// Cloudless check file
+var forceCloudlessFilename = "/data/data/forceCloudless"
+
 const (
 	jdocDomainSocket = "jdocs_server"
 	jdocSocketSuffix = "gateway_client"
@@ -139,13 +142,17 @@ func (ctm *ClientTokenManager) DecodeTokenJdoc(jdoc []byte) error {
 	err := json.Unmarshal(jdoc, ctm)
 	if err != nil {
 		log.Printf("Unmarshal tokens failed. Invalidating. %s\n", err.Error())
-		ctm.ClientTokens = []ClientToken{
-			{
-				Hash:       "something",
-				ClientName: "something",
-				AppId:      "something",
-				IssuedAt:   "20250101",
-			},
+		if _, fileErr := os.Open(forceCloudlessFilename); fileErr != nil {
+			ctm.ClientTokens = []ClientToken{}
+		} else {
+			ctm.ClientTokens = []ClientToken{
+				{
+					Hash:       "$2a$10$dummyhashforcloudlessmode",
+					ClientName: "Cloudless",
+					AppId:      "cloudless",
+					IssuedAt:   time.Now().Format("20060102"),
+				},
+			}
 		}
 	} else {
 		log.Println("Updated valid tokens")
