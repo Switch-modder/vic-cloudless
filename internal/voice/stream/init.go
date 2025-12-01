@@ -17,6 +17,7 @@ var doFreqStuff bool = true
 
 // Cloudless check file
 var forceCloudlessFilename = "/data/data/forceCloudless"
+var forceCloudlessDefault = "/etc/forceCloudless"
 
 func (strm *Streamer) init(streamSize int) {
 	// set up error response if context times out/is canceled
@@ -25,8 +26,9 @@ func (strm *Streamer) init(streamSize int) {
 	// start routine to buffer communication between main routine and upload routine
 	go strm.bufferRoutine(streamSize)
 
-	_, cloudlessErr := os.Open(forceCloudlessFilename)
-	isCloudless := (cloudlessErr == nil)
+	_, err1 := os.Stat(forceCloudlessFilename)
+	_, err2 := os.Stat(forceCloudlessDefault)
+	isCloudless := (err1 == nil || err2 == nil)
 
 	if !isCloudless {
 		if strm.opts.checkOpts != nil {

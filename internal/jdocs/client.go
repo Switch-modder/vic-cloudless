@@ -24,6 +24,7 @@ var Added bool
 
 // Cloudless check file
 var forceCloudlessFilename = "/data/data/forceCloudless"
+var forceCloudlessDefault = "/etc/forceCloudless"
 
 type conn struct {
 	conn   *grpc.ClientConn

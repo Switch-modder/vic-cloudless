@@ -23,6 +23,7 @@ import (
 
 // Cloudless check file
 var forceCloudlessFilename = "/data/data/forceCloudless"
+var forceCloudlessDefault = "/etc/forceCloudless"
 
 const (
 	jdocDomainSocket = "jdocs_server"
@@ -143,7 +144,9 @@ func (ctm *ClientTokenManager) DecodeTokenJdoc(jdoc []byte) error {
 	if err != nil {
 		log.Printf("Unmarshal tokens failed. Invalidating. %s\n", err.Error())
 		if _, fileErr := os.Open(forceCloudlessFilename); fileErr != nil {
-			ctm.ClientTokens = []ClientToken{}
+			if _, fileErr := os.Open(forceCloudlessDefault); fileErr != nil {
+				ctm.ClientTokens = []ClientToken{}
+			}
 		} else {
 			ctm.ClientTokens = []ClientToken{
 				{

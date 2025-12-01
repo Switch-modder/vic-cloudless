@@ -20,7 +20,6 @@ import (
 	"github.com/digital-dream-labs/vector-cloud/internal/ipc"
 	"github.com/digital-dream-labs/vector-cloud/internal/jdocs"
 	"github.com/digital-dream-labs/vector-cloud/internal/log"
-	"github.com/digital-dream-labs/vector-cloud/internal/logcollector"
 	"github.com/digital-dream-labs/vector-cloud/internal/robot"
 	"github.com/digital-dream-labs/vector-cloud/internal/token"
 	"github.com/digital-dream-labs/vector-cloud/internal/voice"
@@ -136,7 +135,9 @@ func main() {
 	}
 	log.Println("Starting up")
 	if _, err := os.Open(forceCloudlessFilename); err != nil {
-		log.Println("Running in cloud mode, not loading vosk")
+		if _, fileErr := os.Open(forceCloudlessDefault); fileErr != nil {
+			log.Println("Running in cloud mode, not loading vosk")
+		}
 	} else {
 		log.Println("loading vosk...")
 		vtr.InitVosk()
@@ -172,7 +173,7 @@ func main() {
 	ms := flag.Bool("ms", false, "force microsoft handling on the server end")
 	lex := flag.Bool("lex", false, "force amazon handling on the server end")
 
-	awsRegion := flag.String("region", "us-west-2", "AWS Region")
+	//awsRegion := flag.String("region", "us-west-2", "AWS Region")
 
 	flag.Parse()
 
@@ -215,7 +216,9 @@ func main() {
 	var options []cloudproc.Option
 	options = append(options, platformOpts...)
 	if _, err := os.Open(forceCloudlessFilename); err != nil {
-		voiceOpts = append(voiceOpts, voice.WithCompression(true))
+		if _, fileErr := os.Open(forceCloudlessDefault); fileErr != nil {
+			voiceOpts = append(voiceOpts, voice.WithCompression(true))
+		}
 	} else {
 		voiceOpts = append(voiceOpts, voice.WithCompression(false))
 	}
@@ -238,20 +241,12 @@ func main() {
 	options = append(options, cloudproc.WithTokenOptions(tokenOpts...))
 	options = append(options, cloudproc.WithJdocs(jdocs.WithServer()))
 
-	if _, err := os.Open(forceCloudlessFilename); err != nil {
-		// Disable logcollector
-		//logcollectorOpts := []logcollector.Option{logcollector.WithServer()}
-		//logcollectorOpts = append(logcollectorOpts, logcollector.WithHTTPClient(getHTTPClient()))
-		//logcollectorOpts = append(logcollectorOpts, logcollector.WithS3UrlPrefix(config.Env.LogFiles))
-		//logcollectorOpts = append(logcollectorOpts, logcollector.WithAwsRegion(*awsRegion))
-		//options = append(options, cloudproc.WithLogCollectorOptions(logcollectorOpts...))
-	} else {
-		logcollectorOpts := []logcollector.Option{logcollector.WithServer()}
-		logcollectorOpts = append(logcollectorOpts, logcollector.WithHTTPClient(getHTTPClient()))
-		logcollectorOpts = append(logcollectorOpts, logcollector.WithS3UrlPrefix(config.Env.LogFiles))
-		logcollectorOpts = append(logcollectorOpts, logcollector.WithAwsRegion(*awsRegion))
-		options = append(options, cloudproc.WithLogCollectorOptions(logcollectorOpts...))
-	}
+	// Disable logcollector
+	//logcollectorOpts := []logcollector.Option{logcollector.WithServer()}
+	//logcollectorOpts = append(logcollectorOpts, logcollector.WithHTTPClient(getHTTPClient()))
+	//logcollectorOpts = append(logcollectorOpts, logcollector.WithS3UrlPrefix(config.Env.LogFiles))
+	//logcollectorOpts = append(logcollectorOpts, logcollector.WithAwsRegion(*awsRegion))
+	//options = append(options, cloudproc.WithLogCollectorOptions(logcollectorOpts...))
 
 	cloudproc.Run(context.Background(), options...)
 

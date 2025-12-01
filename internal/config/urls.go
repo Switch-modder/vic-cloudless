@@ -46,16 +46,19 @@ func SetGlobal(filename string) error {
 var defaultFilename = "/anki/data/assets/cozmo_resources/config/server_config.json"
 var wirepodFilename = "/data/data/server_config.json"
 var forceCloudlessFilename = "/data/data/forceCloudless"
+var forceCloudlessDefault = "/etc/forceCloudless"
 
 // LoadURLs attempts to load a URL config from the given filename. If the given filename
 // is blank, a known hardcoded location for server_config.json on the robot is used.
 func LoadURLs(filename string) (*URLs, error) {
 	if filename == "" {
 		if _, err := os.Open(forceCloudlessFilename); err != nil {
-			if _, err := os.Open(wirepodFilename); err != nil {
-				filename = defaultFilename
-			} else {
-				filename = wirepodFilename
+			if _, fileErr := os.Open(forceCloudlessDefault); fileErr != nil {
+				if _, err := os.Open(wirepodFilename); err != nil {
+					filename = defaultFilename
+				} else {
+					filename = wirepodFilename
+				}
 			}
 		} else {
 			filename = defaultFilename
