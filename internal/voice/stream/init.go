@@ -1,8 +1,8 @@
 package stream
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"strconv"
 
 	chippergrpc2 "github.com/digital-dream-labs/api/go/chipperpb"
@@ -14,8 +14,8 @@ var doFreqStuff bool = true
 
 // set to 1267200 and 800000 for maximum Juice
 // No - Emily
-var cpuUpClock int = 1094400
-var memUpClock int = 700000
+var cpuUpClock int = 729600
+var memUpClock int = 600000
 
 // WIRE: main entrypoint for a request!
 // we are keeping the OG code commented in case we want to make some sort of hybrid solution
