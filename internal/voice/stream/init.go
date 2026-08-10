@@ -40,6 +40,8 @@ func (strm *Streamer) init(streamSize int) {
 		if strm.opts.checkOpts != nil {
 			go strm.testRoutine(streamSize)
 		}
+
+		// connect to server
 		var err *CloudError
 		if strm.conn, err = strm.opts.connectFn(strm.ctx); err != nil {
 			strm.receiver.OnError(err.Kind, err.Err)
@@ -49,6 +51,7 @@ func (strm *Streamer) init(streamSize int) {
 	}
 	i := 0
 
+	// start routine to upload audio via GRPC until response or error
 	go func() {
 		responseInited := false
 		var curFreq string

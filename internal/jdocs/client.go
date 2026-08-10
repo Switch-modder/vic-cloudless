@@ -14,10 +14,12 @@ import (
 
 	"github.com/digital-dream-labs/vector-cloud/internal/log"
 	"github.com/digital-dream-labs/vector-cloud/internal/token"
+	"github.com/digital-dream-labs/vector-cloud/internal/util"
 
 	pb "github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/gwatts/rootcerts"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var Added bool
@@ -44,16 +46,28 @@ func getCertPool() *x509.CertPool {
 }
 
 func newConn(ctx context.Context, opts *options) (*conn, error) {
-	if _, err := os.Open(forceCloudlessFilename); err == nil {
 
-		return &conn{
-			conn:   nil,
-			client: nil,
-			tok:    opts.tokener,
-		}, nil
+	pool := rootcerts.ServerCertPool()
+
+	_ = pool.AppendCertsFromPEM([]byte(escapepodRootPEM))
+
+	dialOpts := []grpc.DialOption{
+		grpc.WithTransportCredentials(
+			credentials.NewClientTLSFromCert(pool, ""),
+		),
 	}
 
-	rpcConn, err := grpc.DialContext(ctx, config.Env.JDocs)
+	dialOpts = append(dialOpts, util.CommonGRPC()...)
+	// end idea
+
+	if opts.tokener != nil {
+		creds, err := opts.tokener.Credentials()
+		if err != nil {
+			return nil, err
+		}
+		dialOpts = append(dialOpts, grpc.WithPerRPCCredentials(creds))
+	}
+	rpcConn, err := grpc.DialContext(ctx, config.Env.JDocs, dialOpts...)
 	if err != nil {
 		return nil, err
 	}

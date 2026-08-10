@@ -150,10 +150,10 @@ func (ctm *ClientTokenManager) DecodeTokenJdoc(jdoc []byte) error {
 		} else {
 			ctm.ClientTokens = []ClientToken{
 				{
-					Hash:       "$2a$10$dummyhashforcloudlessmode",
-					ClientName: "Cloudless",
-					AppId:      "cloudless",
-					IssuedAt:   time.Now().Format("20060102"),
+					Hash:       "something",
+					ClientName: "something",
+					AppId:      "something",
+					IssuedAt:   "20250101",
 				},
 			}
 		}

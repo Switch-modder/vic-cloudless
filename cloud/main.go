@@ -241,11 +241,11 @@ func main() {
 	options = append(options, cloudproc.WithTokenOptions(tokenOpts...))
 	options = append(options, cloudproc.WithJdocs(jdocs.WithServer()))
 
-	// Disable logcollector
-	//logcollectorOpts := []logcollector.Option{logcollector.WithServer()}
-	//logcollectorOpts = append(logcollectorOpts, logcollector.WithHTTPClient(getHTTPClient()))
-	//logcollectorOpts = append(logcollectorOpts, logcollector.WithS3UrlPrefix(config.Env.LogFiles))
-	//logcollectorOpts = append(logcollectorOpts, logcollector.WithAwsRegion(*awsRegion))
+	// disable the STUPID log collector. holy shit
+	// logcollectorOpts := []logcollector.Option{logcollector.WithServer()}
+	// logcollectorOpts = append(logcollectorOpts, logcollector.WithHTTPClient(getHTTPClient()))
+	// logcollectorOpts = append(logcollectorOpts, logcollector.WithS3UrlPrefix(config.Env.LogFiles))
+	// logcollectorOpts = append(logcollectorOpts, logcollector.WithAwsRegion(*awsRegion))
 	//options = append(options, cloudproc.WithLogCollectorOptions(logcollectorOpts...))
 
 	cloudproc.Run(context.Background(), options...)

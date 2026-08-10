@@ -529,7 +529,9 @@ func SendOnboardingMarkCompleteAndExit(in *extint.GatewayWrapper_OnboardingMarkC
 
 // The service definition.
 // This must implement all the rpc functions defined in the external_interface proto file.
-type rpcService struct{}
+type rpcService struct {
+	extint.UnimplementedExternalInterfaceServer
+}
 
 func (service *rpcService) ProtocolVersion(ctx context.Context, in *extint.ProtocolVersionRequest) (*extint.ProtocolVersionResponse, error) {
 	response := &extint.ProtocolVersionResponse{

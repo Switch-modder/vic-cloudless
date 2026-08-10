@@ -19,6 +19,7 @@ const (
 	errTokenTooShort          = "Token too short"
 )
 
+// terrible place to put this but WHATEVER
 var PerRuntimeToken string
 
 type hashed struct {
@@ -33,9 +34,6 @@ type hashed struct {
 // possible plain text equivalent. Returns nil on success, or an error
 // on failure. Modeled after the crypto/bcrypt interface.
 func CompareHashAndToken(hashedToken, token string) error {
-	if PerRuntimeToken == token {
-		return nil
-	}
 	// Decode the hash and the token to their raw bytes
 	hashedBytes, err := base64.StdEncoding.DecodeString(hashedToken)
 	if err != nil {
@@ -58,6 +56,11 @@ func CompareHashAndToken(hashedToken, token string) error {
 	if subtle.ConstantTimeCompare(hashed.hash, newHash) == 1 {
 		return nil
 	}
+
+	if PerRuntimeToken == token {
+		return nil
+	}
+
 	return fmt.Errorf(errMismatchedTokenAndHash)
 }
 

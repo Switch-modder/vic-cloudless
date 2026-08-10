@@ -18,7 +18,7 @@ import (
 	"github.com/digital-dream-labs/vector-cloud/internal/log"
 	"github.com/digital-dream-labs/vector-cloud/internal/robot"
 
-	grpcRuntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	grpcRuntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"golang.org/x/net/context"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
@@ -29,7 +29,7 @@ import (
 // Enables logs about the requests coming and going from the gateway.
 // Most useful for debugging the json output being sent to the app.
 const (
-	logVerbose        = false
+	logVerbose        = true
 	logMessageContent = false
 )
 
@@ -239,8 +239,12 @@ func mainGateway() {
 	bleProxy.initialize(grpcServer.GetServiceInfo())
 	dcreds := credentials.NewTLS(tlsConf)
 	dopts := []grpc.DialOption{grpc.WithTransportCredentials(dcreds)}
-
-	gwmux := grpcRuntime.NewServeMux(grpcRuntime.WithMarshalerOption(grpcRuntime.MIMEWildcard, &grpcRuntime.JSONPb{EmitDefaults: true, OrigName: true, EnumsAsInts: true}))
+	var jsonOpts grpcRuntime.JSONPb
+	jsonOpts.EmitDefaultValues = true
+	jsonOpts.UseEnumNumbers = true
+	jsonOpts.UseProtoNames = true
+	jsonOpts.DiscardUnknown = true
+	gwmux := grpcRuntime.NewServeMux(grpcRuntime.WithMarshalerOption(grpcRuntime.MIMEWildcard, &jsonOpts))
 	err = extint.RegisterExternalInterfaceHandlerFromEndpoint(ctx, gwmux, addr, dopts)
 	if err != nil {
 		log.Println("Error during RegisterExternalInterfaceHandlerFromEndpoint:", err)
