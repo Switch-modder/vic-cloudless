@@ -16,7 +16,7 @@ type JsonIntent struct {
 var IntentList []JsonIntent
 
 func loadIntents() {
-	file, err := os.ReadFile("/anki/data/assets/cozmo_resources/cloudless/en-US/en-US.json")
+	file, err := os.ReadFile("/anki/data/cloudswitch/en-US/en-US.json")
 	if err != nil {
 		log.Fatal(err)
 	}

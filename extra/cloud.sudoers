@@ -1,1 +1,1 @@
-cloud ALL = (root, root) NOPASSWD: /usr/sbin/setfreq *
+cloud ALL = (root, root) NOPASSWD: /anki/bin/setfreq *

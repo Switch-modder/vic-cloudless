@@ -6,7 +6,7 @@ SHERPA_URL = https://github.com/kercre123/vic-cloudless/releases/download/v0.0.1
 SHERPA_UNZIPPED = build/sherpa-shared-citrinet/.unzipped
 
 INTENT_JSON = build/en-US/en-US.json
-INTENT_URL = https://github.com/kercre123/wire-pod/raw/refs/heads/main/chipper/intent-data/en-US.json
+INTENT_URL = https://github.com/Victor-Rebuild/cavalier-1.6/raw/refs/heads/main/intent-data/en-US.json
 
 all: $(SHERPA_UNZIPPED) $(INTENT_JSON) vic-cloud
 
@@ -29,7 +29,7 @@ opusbuild:
 	./build-voskopus.sh
 
 go_deps:
-	echo `go version` && cd $(PWD) && go mod download
+	echo `/usr/local/go/bin/go version` && cd $(PWD) && /usr/local/go/bin/go mod download
 
 vic-cloud: gettoolchain opusbuild go_deps
 	CGO_ENABLED=1 GOARM=7 GOARCH=arm \

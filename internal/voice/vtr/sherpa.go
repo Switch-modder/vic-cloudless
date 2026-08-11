@@ -22,9 +22,9 @@ func InitVosk() {
 	config := sherpa.OfflineRecognizerConfig{
 		ModelConfig: sherpa_onnx.OfflineModelConfig{
 			NemoCTC: sherpa_onnx.OfflineNemoEncDecCtcModelConfig{
-				Model: "/sherpa/citrinet-256-ls/model.onnx",
+				Model: "/anki/data/cloudswitch/sherpa/citrinet-256-ls/model.onnx",
 			},
-			Tokens:     "/sherpa/citrinet-256-ls/tokens.txt",
+			Tokens:     "/anki/data/cloudswitch/sherpa/citrinet-256-ls/tokens.txt",
 			NumThreads: 4,
 		},
 		DecodingMethod: "greedy_search",
@@ -109,5 +109,5 @@ func GetFreq() string {
 }
 
 func SetFreq(cpu, ram string) {
-	go exec.Command("/usr/bin/sudo", "/usr/sbin/setfreq", cpu, ram).Run()
+	go exec.Command("/usr/bin/sudo", "/anki/bin/setfreq", cpu, ram).Run()
 }
