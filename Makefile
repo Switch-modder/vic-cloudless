@@ -29,7 +29,7 @@ opusbuild:
 	./build-voskopus.sh
 
 go_deps:
-	echo `/usr/local/go/bin/go version` && cd $(PWD) && /usr/local/go/bin/go mod download
+	echo `go version` && cd $(PWD) && go mod download
 
 vic-cloud: gettoolchain opusbuild go_deps
 	CGO_ENABLED=1 GOARM=7 GOARCH=arm \
