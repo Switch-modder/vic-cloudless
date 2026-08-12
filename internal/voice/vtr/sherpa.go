@@ -6,7 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
+
+	// "time"
 
 	sherpa_onnx "github.com/k2-fsa/sherpa-onnx-go-linux"
 	sherpa "github.com/k2-fsa/sherpa-onnx-go/sherpa_onnx"
@@ -42,11 +43,11 @@ func sendUtterance(sr int, utterance []int16) string {
 
 	str := sherpa.NewOfflineStream(rec)
 	str.AcceptWaveform(sr, audio)
-	sttStartTime := time.Now()
+	// sttStartTime := time.Now()
 	rec.Decode(str)
-	sttTime := time.Since(sttStartTime)
+	// sttTime := time.Since(sttStartTime)
 	result := str.GetResult()
-	fmt.Printf("STT Took: %v\n", sttTime)
+	// fmt.Printf("STT Took: %v\n", sttTime)
 	overarchingIgnore = false
 
 	if result == nil {
