@@ -92,7 +92,7 @@ func ParamChecker(intent string, speechText string, botSerial string) (string, m
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, GetText(STR_ME)) || strings.Contains(speechText, GetText(STR_SELF)) {
+		if strings.Contains(speechText, GetText(STR_ME)) || strings.Contains(speechText, GetText(STR_SELF)) || strings.Contains(speechText, GetText(STR_US)) {
 			intentParam = "entity_photo_selfie"
 			intentParamValue = "photo_selfie"
 		} else {
@@ -116,6 +116,10 @@ func ParamChecker(intent string, speechText string, botSerial string) (string, m
 			intentParamValue = "COLOR_GREEN"
 		} else if strings.Contains(speechText, GetText(STR_EYE_COLOR_ORANGE)) {
 			intentParamValue = "COLOR_ORANGE"
+		} else if strings.Contains(speechText, GetText(STR_EYE_COLOR_RAINBOW)) {
+			intentParamValue = "COLOR_RAINBOW"
+		} else if strings.Contains(speechText, GetText(STR_EYE_COLOR_REBUILD)) {
+			intentParamValue = "COLOR_REBUILD"
 		} else {
 			newIntent = intent
 			intentParamValue = ""
@@ -148,50 +152,45 @@ func ParamChecker(intent string, speechText string, botSerial string) (string, m
 		} else if strings.Contains(speechText, GetText(STR_VOLUME_MUTE)) || strings.Contains(speechText, GetText(STR_VOLUME_NOTHING)) || strings.Contains(speechText, GetText(STR_VOLUME_SILENT)) || strings.Contains(speechText, GetText(STR_VOLUME_OFF)) || strings.Contains(speechText, GetText(STR_VOLUME_ZERO)) {
 			// there is no VOLUME_0 :(
 			intentParam = "volume_level"
-			intentParamValue = "VOLUME_1"
+			intentParamValue = "VOLUME_0"
 		} else {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
 		}
 		intentParams = map[string]string{intentParam: intentParamValue}
 		// "my name is" is not possible anymore :/
-		//}
-		//else if strings.Contains(intent, "intent_names_username_extend") {
-		// if !vars.VoskGrammerEnable {
-		// 	var username string
-		// 	var nameSplitter string = ""
-		// 	isParam = true
-		// 	newIntent = intent
-		// 	if strings.Contains(speechText, GetText(STR_NAME_IS)) {
-		// 		nameSplitter = GetText(STR_NAME_IS)
-		// 	} else if strings.Contains(speechText, GetText(STR_NAME_IS2)) {
-		// 		nameSplitter = GetText(STR_NAME_IS2)
-		// 	} else if strings.Contains(speechText, GetText(STR_NAME_IS3)) {
-		// 		nameSplitter = GetText(STR_NAME_IS3)
-		// 	}
-		// 	if nameSplitter != "" {
-		// 		splitPhrase := strings.SplitAfter(speechText, nameSplitter)
-		// 		username = strings.TrimSpace(splitPhrase[1])
-		// 		if len(splitPhrase) == 3 {
-		// 			username = username + " " + strings.TrimSpace(splitPhrase[2])
-		// 		} else if len(splitPhrase) == 4 {
-		// 			username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
-		// 		} else if len(splitPhrase) > 4 {
-		// 			username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
-		// 		}
-		// 		logger.Println("Name parsed from speech: " + "`" + username + "`")
-		// 		intentParam = "username"
-		// 		intentParamValue = username
-		// 		intentParams = map[string]string{intentParam: intentParamValue}
-		// 	} else {
-		// 		logger.Println("No name parsed from speech")
-		// 		intentParam = "username"
-		// 		intentParamValue = ""
-		// 		intentParams = map[string]string{intentParam: intentParamValue}
-		// 	}
-		// } else {
-		// 	newIntent = "intent_system_noaudio"
-		// }
+	} else if strings.Contains(intent, "intent_names_username_extend") {
+		var username string
+		var nameSplitter string = ""
+		isParam = true
+		newIntent = intent
+		if strings.Contains(speechText, GetText(STR_NAME_IS)) {
+			nameSplitter = GetText(STR_NAME_IS)
+		} else if strings.Contains(speechText, GetText(STR_NAME_IS2)) {
+			nameSplitter = GetText(STR_NAME_IS2)
+		} else if strings.Contains(speechText, GetText(STR_NAME_IS3)) {
+			nameSplitter = GetText(STR_NAME_IS3)
+		}
+		if nameSplitter != "" {
+			splitPhrase := strings.SplitAfter(speechText, nameSplitter)
+			username = strings.TrimSpace(splitPhrase[1])
+			if len(splitPhrase) == 3 {
+				username = username + " " + strings.TrimSpace(splitPhrase[2])
+			} else if len(splitPhrase) == 4 {
+				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
+			} else if len(splitPhrase) > 4 {
+				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
+			}
+			fmt.Println("Name parsed from speech: " + "`" + username + "`")
+			intentParam = "username"
+			intentParamValue = username
+			intentParams = map[string]string{intentParam: intentParamValue}
+		} else {
+			fmt.Println("No name parsed from speech")
+			intentParam = "username"
+			intentParamValue = ""
+			intentParams = map[string]string{intentParam: intentParamValue}
+		}
 	} else if strings.Contains(intent, "intent_clock_settimer_extend") {
 		isParam = true
 		newIntent = intent

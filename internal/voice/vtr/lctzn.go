@@ -16,8 +16,11 @@ const STR_EYE_COLOR_TEAL = "str_eye_color_teal"
 const STR_EYE_COLOR_TEAL2 = "str_eye_color_teal2"
 const STR_EYE_COLOR_GREEN = "str_eye_color_green"
 const STR_EYE_COLOR_ORANGE = "str_eye_color_orange"
+const STR_EYE_COLOR_RAINBOW = "str_eye_color_rainbow"
+const STR_EYE_COLOR_REBUILD = "str_eye_color_rebuild"
 const STR_ME = "str_me"
 const STR_SELF = "str_self"
+const STR_US = "str_us"
 const STR_VOLUME_LOW = "str_volume_low"
 const STR_VOLUME_QUIET = "str_volume_quiet"
 const STR_VOLUME_MEDIUM_LOW = "str_volume_medium_low"
@@ -87,8 +90,11 @@ var ALL_STR []string = []string{
 	"str_eye_color_teal2",
 	"str_eye_color_green",
 	"str_eye_color_orange",
+	"str_eye_color_rainbow",
+	"str_eye_color_rebuild",
 	"str_me",
 	"str_self",
+	"str_us",
 	"str_volume_low",
 	"str_volume_quiet",
 	"str_volume_medium_low",
@@ -161,8 +167,11 @@ var texts = map[string][]string{
 	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarine", "acquamarina", "akwamaryn", "蓝绿", "turkuaz", "аквамарин", "vertellen", "аквамариновий", "màu xanh ngọc"},
 	STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün", "zielony", "绿色", "yeşil", "зелёный", "groente", "зелений", "màu xanh lá"},
 	STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange", "pomarańczowy", "橙色", "turuncu", "оранжевый", "oranje", "оранжевий", "màu cam"},
+	STR_EYE_COLOR_RAINBOW:              {"rainbow", "arcobaleno", "arcoíris", "arc-en-ciel", "Regenbogen", "tęcza", "彩虹", "gökkuşağı", "радуга", "rainbow", "rainbow", "rainbow", "rainbow"},
+	STR_EYE_COLOR_REBUILD:              {"cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar", "cross media bar"},
 	STR_ME:                             {"me", "me", "me", "moi", "mir", "mnie", "我", "ben", "меня", "mij", "мене", "tôi"},
 	STR_SELF:                           {"self", "mi", "mía", "moi", "mein", "ja", "自己", "kendim", "себя", "zelf", "себе", "bản thân"},
+	STR_US:                             {"us", "mi", "mía", "moi", "mein", "ja", "自己", "kendim", "себя", "zelf", "себе", "bản thân", "본인", "자신"},
 	STR_VOLUME_LOW:                     {"low", "basso", "bajo", "bas", "niedrig", "niski", "低", "düşük", "низкий", "laag", "на мінімум", "thấp"},
 	STR_VOLUME_QUIET:                   {"quiet", "poco rumoroso", "tranquilo", "silencieux", "ruhig", "cichy", "安静", "sessiz", "тихо", "rustig", "тихо", "yên tĩnh"},
 	STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen bas", "mittelschwer", "średnio niski", "中低", "orta düşük", "ниже среднего", "middel laag", "нижче середнього", "vừa thấp"},
