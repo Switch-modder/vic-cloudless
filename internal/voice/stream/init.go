@@ -14,7 +14,7 @@ var doFreqStuff bool = true
 
 // set to 1267200 and 800000 for maximum Juice
 // No - Emily
-var cpuUpClock int = 729600
+var cpuUpClock int = 533333
 var memUpClock int = 600000
 
 // WIRE: main entrypoint for a request!
