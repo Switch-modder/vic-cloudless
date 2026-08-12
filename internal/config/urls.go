@@ -51,14 +51,17 @@ var forceCloudlessDefault = "/etc/forceCloudless"
 // LoadURLs attempts to load a URL config from the given filename. If the given filename
 // is blank, a known hardcoded location for server_config.json on the robot is used.
 func LoadURLs(filename string) (*URLs, error) {
+
+	_, err1 := os.Stat(forceCloudlessFilename)
+	_, err2 := os.Stat(forceCloudlessDefault)
+	isCloudless := (err1 == nil || err2 == nil)
+
 	if filename == "" {
-		if _, err := os.Open(forceCloudlessFilename); err != nil {
-			if _, fileErr := os.Open(forceCloudlessDefault); fileErr != nil {
-				if _, err := os.Open(wirepodFilename); err != nil {
-					filename = defaultFilename
-				} else {
-					filename = wirepodFilename
-				}
+		if !isCloudless {
+			if _, err := os.Open(wirepodFilename); err != nil {
+				filename = defaultFilename
+			} else {
+				filename = wirepodFilename
 			}
 		} else {
 			filename = defaultFilename

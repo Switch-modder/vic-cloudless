@@ -138,15 +138,18 @@ func (ctm *ClientTokenManager) CheckToken(clientToken string) (string, error) {
 
 // DecodeTokenJdoc will update existing valid tokens, from a jdoc received from the server
 func (ctm *ClientTokenManager) DecodeTokenJdoc(jdoc []byte) error {
+
+	_, err1 := os.Stat(forceCloudlessFilename)
+	_, err2 := os.Stat(forceCloudlessDefault)
+	isCloudless := (err1 == nil || err2 == nil)
+
 	ctm.recentTokenIndex = 0
 	ctm.lastUpdatedTokens = time.Now()
 	err := json.Unmarshal(jdoc, ctm)
 	if err != nil {
 		log.Printf("Unmarshal tokens failed. Invalidating. %s\n", err.Error())
-		if _, fileErr := os.Open(forceCloudlessFilename); fileErr != nil {
-			if _, fileErr := os.Open(forceCloudlessDefault); fileErr != nil {
-				ctm.ClientTokens = []ClientToken{}
-			}
+		if !isCloudless {
+			ctm.ClientTokens = []ClientToken{}
 		} else {
 			ctm.ClientTokens = []ClientToken{
 				{

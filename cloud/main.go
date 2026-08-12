@@ -87,6 +87,11 @@ func randomString() string {
 }
 
 func main() {
+
+	_, err1 := os.Stat(forceCloudlessFilename)
+	_, err2 := os.Stat(forceCloudlessDefault)
+	isCloudless := (err1 == nil || err2 == nil)
+
 	go mainGateway()
 	f, err := os.ReadFile("/run/vic-cloud/perRuntimeToken")
 	if err != nil {
@@ -134,10 +139,9 @@ func main() {
 		}
 	}
 	log.Println("Starting up")
-	if _, err := os.Open(forceCloudlessFilename); err != nil {
-		if _, fileErr := os.Open(forceCloudlessDefault); fileErr != nil {
-			log.Println("Running in cloud mode, not loading vosk")
-		}
+
+	if !isCloudless {
+		log.Println("Running in cloud mode, not loading vosk")
 	} else {
 		log.Println("loading vosk...")
 		vtr.InitVosk()
@@ -215,10 +219,8 @@ func main() {
 	voiceOpts := []voice.Option{voice.WithChunkMs(120), voice.WithSaveAudio(true)}
 	var options []cloudproc.Option
 	options = append(options, platformOpts...)
-	if _, err := os.Open(forceCloudlessFilename); err != nil {
-		if _, fileErr := os.Open(forceCloudlessDefault); fileErr != nil {
-			voiceOpts = append(voiceOpts, voice.WithCompression(true))
-		}
+	if !isCloudless {
+		voiceOpts = append(voiceOpts, voice.WithCompression(true))
 	} else {
 		voiceOpts = append(voiceOpts, voice.WithCompression(false))
 	}

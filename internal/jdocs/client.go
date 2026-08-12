@@ -110,7 +110,11 @@ var connectErrorResponse = cloud.NewDocResponseWithErr(&cloud.ErrorResponse{Err:
 func (c *conn) writeRequest(ctx context.Context, cladReq *cloud.WriteRequest) (*cloud.DocResponse, error) {
 	req := (*cladWriteReq)(cladReq).toProto()
 
-	if _, fileErr := os.Open(forceCloudlessFilename); fileErr != nil {
+	_, err1 := os.Stat(forceCloudlessFilename)
+	_, err2 := os.Stat(forceCloudlessDefault)
+	isCloudless := (err1 == nil || err2 == nil)
+
+	if !isCloudless {
 		if c.conn == nil || c.client == nil {
 			return connectErrorResponse, fmt.Errorf("connection not established")
 		}
@@ -133,7 +137,11 @@ func (c *conn) writeRequest(ctx context.Context, cladReq *cloud.WriteRequest) (*
 func (c *conn) readRequest(ctx context.Context, cladReq *cloud.ReadRequest) (*cloud.DocResponse, error) {
 	req := (*cladReadReq)(cladReq).toProto()
 
-	if _, err := os.Open(forceCloudlessFilename); err != nil {
+	_, err1 := os.Stat(forceCloudlessFilename)
+	_, err2 := os.Stat(forceCloudlessDefault)
+	isCloudless := (err1 == nil || err2 == nil)
+
+	if !isCloudless {
 		if c.conn == nil {
 			return connectErrorResponse, fmt.Errorf("connection not established")
 		}
@@ -154,7 +162,11 @@ func (c *conn) readRequest(ctx context.Context, cladReq *cloud.ReadRequest) (*cl
 }
 
 func (c *conn) deleteRequest(ctx context.Context, cladReq *cloud.DeleteRequest) (*cloud.DocResponse, error) {
-	if _, fileErr := os.Open(forceCloudlessFilename); fileErr != nil {
+	_, err1 := os.Stat(forceCloudlessFilename)
+	_, err2 := os.Stat(forceCloudlessDefault)
+	isCloudless := (err1 == nil || err2 == nil)
+
+	if !isCloudless {
 		if c.conn == nil || c.client == nil {
 			return connectErrorResponse, fmt.Errorf("connection not established")
 		}
