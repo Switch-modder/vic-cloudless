@@ -2,5 +2,3 @@
 /voskopus
 /oe-logs
 /oe-workdir
-*.pb.go
-*.pb.gw.go
