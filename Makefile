@@ -45,7 +45,7 @@ vic-cloud: gettoolchain opusbuild go_deps
 	-o build/vic-cloud \
 	cloud/*
 
-	upx --best --lzma build/vic-cloud
+#	upx --best --lzma build/vic-cloud
 
 
 #vic-gateway: go_deps
